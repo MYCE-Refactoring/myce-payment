@@ -1,0 +1,22 @@
+// ✅ domain 모듈의 의존성
+dependencies {
+    // common 모듈 추가 (CustomException 사용 위해)
+    api project(':common')
+
+    // api로 설정해서 internal 모듈도 자동으로 JPA 사용 가능
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+}
+
+// ❌ 실행 파일 안만듦 (domain은 라이브러리 역할)
+bootJar {
+    enabled = false
+}
+
+// ✅ 라이브러리 파일 생성 (internal이 이걸 사용함)
+jar {
+    enabled = true
+}
+
+
+

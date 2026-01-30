@@ -1,0 +1,16 @@
+dependencies {
+    implementation project(':common')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // 포트원 SDK (external에만 의존!)
+    implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
+}
+// external common dto 안쓰고 가능한지 check
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+

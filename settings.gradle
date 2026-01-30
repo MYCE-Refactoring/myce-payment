@@ -1,0 +1,3 @@
+rootProject.name = 'myce-payment'
+  include  'domain', 'internal', 'common', 'external'
+        //'api',

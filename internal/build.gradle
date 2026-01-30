@@ -1,0 +1,26 @@
+dependencies {
+    implementation project(':domain')
+    implementation project(':common')
+    implementation project(':external')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    //유레카
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    //프로메테우스 메트릭스수집용
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+
+    runtimeOnly 'com.mysql:mysql-connector-j'
+}
+
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
+}
