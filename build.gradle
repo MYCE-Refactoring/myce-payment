@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+    id 'java-library'
+    id 'org.springframework.boot' version '3.5.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+repositories {
+    mavenCentral()    // Maven 중앙 저장소에서 라이브러리 다운로드
+}
+
+bootJar {
+    enabled = false    // ❌ 루트에서는 실행 파일(.jar) 안만듦
+}
+
+jar {
+    enabled = false    // ❌ 루트에서는 일반 라이브러리(.jar)도 안만듦
+}
+
+subprojects { // 하위 모듈에 공통으로 적용할 설정
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    group = 'com.myce'
+    version = '0.0.1-SNAPSHOT'
+    description = 'myce-payment'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor    // Lombok이 컴파일 시점에 코드 생성
+        }
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }  // 포트원 SDK용
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok'               // Lombok (컴파일 시점에만)
+        annotationProcessor 'org.projectlombok:lombok'       // Lombok 어노테이션 처리기
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'  // 테스트 도구
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'            // JUnit 실행기
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}
+
+if (tasks.findByName("prepareKotlinBuildScriptModel") == null) {
+    tasks.register("prepareKotlinBuildScriptModel") {}
+}

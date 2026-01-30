@@ -1,0 +1,15 @@
+// api 모듈만의 특별한 의존성
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+// api는 실행 가능한 서버 (bootJar 활성화)
+bootJar {
+	enabled = true
+}
+
+jar {
+	enabled = false
+}
+

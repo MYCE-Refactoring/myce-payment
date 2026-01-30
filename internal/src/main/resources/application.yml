@@ -1,0 +1,36 @@
+server:
+  port: 8023
+  forward-headers-strategy: native
+
+logging:
+  level:
+    root: info
+    com.myce: debug
+
+spring:
+  profiles:
+    active: ${PROFILE:local}
+    include:
+      - domain
+      - common
+
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:../.env[.properties]
+
+  # 포트원 설정
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    persistAuthorization: true
+  api-docs:
+    path: /v3/api-docs
+
+
+port-one:
+  base-url: ${PORTONE_BASE_URL}
+  api-key: ${PORTONE_API_KEY}
+  api-secret: ${PORTONE_API_SECRET}
+  customer-code: ${PORTONE_CUSTOMER_CODE}
