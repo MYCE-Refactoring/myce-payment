@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
  *  ### 핵심 변경점
  *   - 입력 DTO가 다름
  *     PaymentVerifyInfo(core 전용) → PaymentInternalRequest(payment 전용)
- *   - Reservation MVP 기준 고정
- *     targetType = RESERVATION, targetId = reservationId
+ *   - targetType/targetId 우선 사용
+ *     누락 시 reservationId 기반으로 폴백
  *   - PaymentInfo 관련 로직 제거
  *     core 전용 정보는 payment에서 알 필요가 없음
  */
@@ -27,14 +27,19 @@ public class PaymentMapper {
     /**
      * 카드/간편결제용 매핑
      * - core의 toEntity()와 동일한 역할
-     * - Reservation MVP 기준: targetType을 RESERVATION으로 고정
+     * - targetType/targetId가 없으면 reservationId로 폴백
      */
     public Payment toEntity(PaymentInternalRequest request, Map<String, Object> portOnePayment) {
         String payMethod = (String) portOnePayment.get(PortOneResponseKey.PAY_METHOD);
+        PaymentTargetType targetType = request.getTargetType() != null
+                ? request.getTargetType()
+                : PaymentTargetType.RESERVATION;
+        Long targetId = request.getTargetId() != null
+                ? request.getTargetId()
+                : request.getReservationId();
         return Payment.builder()
-                // Reservation MVP -> targerType/targetId 고정
-                .targetType(PaymentTargetType.RESERVATION)
-                .targetId(request.getReservationId())
+                .targetType(targetType)
+                .targetId(targetId)
                 // 결제 수단/결제사/식별자 저장
                 .paymentMethod(PaymentMethod.getPaymentMethod(payMethod))
                 .provider((String) portOnePayment.get(PortOneResponseKey.PG_PROVIDER))
@@ -55,12 +60,19 @@ public class PaymentMapper {
      * 이체/가상계좌용 매핑
      * - core의 toEntityTransfer()와 동일한 역할
      * - 계좌 필드가 카드와 다르기 때문에 분리
+     * - targetType/targetId가 없으면 reservationId로 폴백
      */
     public Payment toEntityTransfer(PaymentInternalRequest request, Map<String, Object> portOnePayment) {
         String payMethod = (String) portOnePayment.get(PortOneResponseKey.PAY_METHOD);
+        PaymentTargetType targetType = request.getTargetType() != null
+                ? request.getTargetType()
+                : PaymentTargetType.RESERVATION;
+        Long targetId = request.getTargetId() != null
+                ? request.getTargetId()
+                : request.getReservationId();
         return Payment.builder()
-                .targetType(PaymentTargetType.RESERVATION)
-                .targetId(request.getReservationId())
+                .targetType(targetType)
+                .targetId(targetId)
                 .paymentMethod(PaymentMethod.getPaymentMethod(payMethod))
                 .provider((String) portOnePayment.get(PortOneResponseKey.PG_PROVIDER))
                 .merchantUid(request.getMerchantUid())

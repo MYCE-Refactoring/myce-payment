@@ -1,9 +1,14 @@
 package com.myce.payment.service.impl;
 
+import com.myce.payment.dto.PaymentInternalDetailResponse;
 import com.myce.payment.dto.PaymentInternalRequest;
 import com.myce.payment.dto.PaymentInternalResponse;
+import com.myce.payment.dto.PaymentInternalTargetRequest;
+import com.myce.payment.dto.PaymentWebhookInternalRequest;
+import com.myce.payment.dto.PaymentWebhookInternalResponse;
 import com.myce.payment.entity.Payment;
 import com.myce.payment.entity.type.PaymentMethod;
+import com.myce.payment.entity.type.PaymentTargetType;
 import com.myce.payment.exception.CustomErrorCode;
 import com.myce.payment.exception.CustomException;
 import com.myce.payment.repository.PaymentRepository;
@@ -12,7 +17,15 @@ import com.myce.payment.service.mapper.PaymentMapper;
 import com.myce.payment.service.portone.PortOneApiService;
 import com.myce.payment.service.portone.constant.PortOneResponseKey;
 import com.myce.payment.service.portone.constant.PortOneStatus;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -98,6 +111,76 @@ public class PaymentInternalServiceImpl implements PaymentInternalService {
                 .build();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PaymentInternalDetailResponse getPaymentByTarget(PaymentTargetType targetType, Long targetId) {
+        return paymentRepository.findByTargetIdAndTargetType(targetId, targetType)
+                .map(this::toDetailResponse)
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PaymentInternalDetailResponse> getPaymentsByTargets(List<PaymentInternalTargetRequest> targets) {
+        if (targets == null || targets.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<PaymentTargetType, List<Long>> groupedTargets = targets.stream()
+                .filter(Objects::nonNull)
+                .filter(target -> target.getTargetType() != null && target.getTargetId() != null)
+                .collect(Collectors.groupingBy(
+                        PaymentInternalTargetRequest::getTargetType,
+                        Collectors.mapping(PaymentInternalTargetRequest::getTargetId, Collectors.toList())
+                ));
+
+        List<Payment> payments = new ArrayList<>();
+        for (Map.Entry<PaymentTargetType, List<Long>> entry : groupedTargets.entrySet()) {
+            payments.addAll(paymentRepository.findByTargetTypeAndTargetIdIn(entry.getKey(), entry.getValue()));
+        }
+
+        return payments.stream()
+                .map(this::toDetailResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public PaymentWebhookInternalResponse processWebhook(PaymentWebhookInternalRequest request) {
+        if (request == null || request.getImpUid() == null) {
+            throw new CustomException(CustomErrorCode.PAYMENT_NOT_FOUND);
+        }
+
+        Payment payment = paymentRepository.findByImpUid(request.getImpUid())
+                .orElseGet(() -> request.getMerchantUid() == null
+                        ? null
+                        : paymentRepository.findByMerchantUid(request.getMerchantUid()).orElse(null));
+
+        if (payment == null) {
+            throw new CustomException(CustomErrorCode.PAYMENT_NOT_FOUND);
+        }
+
+        Map<String, Object> portOnePayment = portOneApiService.getPaymentInfo(request.getImpUid());
+
+        String status = (String) portOnePayment.get(PortOneResponseKey.STATUS);
+        Integer paidAmount = (Integer) portOnePayment.get(PortOneResponseKey.AMOUNT);
+        Long paidAt = toUnixTime(portOnePayment.get(PortOneResponseKey.PAID_AT));
+
+        if (PortOneStatus.PAID.equalsIgnoreCase(status) && paidAt != null && paidAt > 0) {
+            payment.updateOnSuccess(toLocalDateTime(paidAt));
+        }
+
+        return PaymentWebhookInternalResponse.builder()
+                .impUid(payment.getImpUid())
+                .merchantUid(payment.getMerchantUid())
+                .status(status)
+                .paidAmount(paidAmount)
+                .paidAt(paidAt)
+                .targetType(payment.getTargetType())
+                .targetId(payment.getTargetId())
+                .build();
+    }
+
 
     /**
      * 결제 검증 로직 (core의 VerifyPaymentService 로직을 payment로 이동)
@@ -141,6 +224,38 @@ public class PaymentInternalServiceImpl implements PaymentInternalService {
         if (!portOneMerchantUid.equals(merchantUid)) {
             throw new CustomException(CustomErrorCode.PAYMENT_MERCHANT_UID_MISMATCH);
         }
+    }
+
+    private PaymentInternalDetailResponse toDetailResponse(Payment payment) {
+        return PaymentInternalDetailResponse.builder()
+                .paymentId(payment.getId())
+                .targetType(payment.getTargetType())
+                .targetId(payment.getTargetId())
+                .paymentMethod(payment.getPaymentMethod())
+                .provider(payment.getProvider())
+                .merchantUid(payment.getMerchantUid())
+                .impUid(payment.getImpUid())
+                .cardCompany(payment.getCardCompany())
+                .cardNumber(payment.getCardNumber())
+                .accountBank(payment.getAccountBank())
+                .accountNumber(payment.getAccountNumber())
+                .createdAt(payment.getCreatedAt())
+                .paidAt(payment.getPaidAt())
+                .build();
+    }
+
+    private Long toUnixTime(Object paidAtObj) {
+        if (paidAtObj instanceof Integer) {
+            return ((Integer) paidAtObj).longValue();
+        }
+        if (paidAtObj instanceof Long) {
+            return (Long) paidAtObj;
+        }
+        return null;
+    }
+
+    private LocalDateTime toLocalDateTime(Long unixTimestamp) {
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(unixTimestamp), ZoneId.systemDefault());
     }
 
 

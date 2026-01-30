@@ -1,7 +1,13 @@
 package com.myce.payment.service;
 
+import com.myce.payment.dto.PaymentInternalDetailResponse;
 import com.myce.payment.dto.PaymentInternalRequest;
 import com.myce.payment.dto.PaymentInternalResponse;
+import com.myce.payment.dto.PaymentInternalTargetRequest;
+import com.myce.payment.dto.PaymentWebhookInternalRequest;
+import com.myce.payment.dto.PaymentWebhookInternalResponse;
+import com.myce.payment.entity.type.PaymentTargetType;
+import java.util.List;
 /**
  * 내부 전용 결제 서비스 계약.
  * - core가 payment 서버에 결제 검증/저장을 요청할 때 사용
@@ -18,4 +24,10 @@ public interface PaymentInternalService {
 
 
     PaymentInternalResponse verifyAndSaveVbankPayment(PaymentInternalRequest request);
+
+    PaymentInternalDetailResponse getPaymentByTarget(PaymentTargetType targetType, Long targetId);
+
+    List<PaymentInternalDetailResponse> getPaymentsByTargets(List<PaymentInternalTargetRequest> targets);
+
+    PaymentWebhookInternalResponse processWebhook(PaymentWebhookInternalRequest request);
 }

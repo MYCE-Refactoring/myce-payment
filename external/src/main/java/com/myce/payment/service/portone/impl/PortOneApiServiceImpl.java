@@ -79,7 +79,7 @@ public class PortOneApiServiceImpl implements PortOneApiService {
     public Map<String, Object> getPaymentInfo(String impUid) {
         String accessToken = getAccessToken();
         // TODO 포트원URL yml로 분리
-        String url = "https://api.iamport.kr/payments/" + impUid;
+        String url = "https://api.iamport.kr/payments/" + impUid + "?include_sandbox=true";
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
