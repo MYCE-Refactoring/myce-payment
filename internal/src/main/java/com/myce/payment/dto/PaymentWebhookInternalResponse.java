@@ -10,11 +10,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentInternalRequest {
-    private String impUid;        // 포트원 결제 고유번호
-    private String merchantUid;   // 가맹점 주문번호
-    private Integer amount;       // 결제 금액
-    private Long reservationId;   // 예약 ID
+public class PaymentWebhookInternalResponse {
+    private String impUid;
+    private String merchantUid;
+    private String status;
+    private Integer paidAmount;
+    private Long paidAt;
     private PaymentTargetType targetType;
     private Long targetId;
 }
