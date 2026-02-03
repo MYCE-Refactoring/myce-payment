@@ -14,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class InternalAuthFilter extends OncePerRequestFilter {
 
-    @Value("${gateway.auth.value}")
+    @Value("${internal.auth.value}")
     private String internalAuthValue;
 
     @Override

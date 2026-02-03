@@ -7,7 +7,7 @@ logging:
     root: info
     com.myce: debug
 
-gateway:
+internal:
   auth:
     value: internal-request
 
