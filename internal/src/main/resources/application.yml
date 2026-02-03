@@ -7,6 +7,10 @@ logging:
     root: info
     com.myce: debug
 
+gateway:
+  auth:
+    value: internal-request
+
 spring:
   application:
     name: payment-internal
