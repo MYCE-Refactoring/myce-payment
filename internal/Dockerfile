@@ -4,7 +4,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app/myce-backend/payment
 
 ## 실행 파일
-COPY ./api/build/libs/*.jar myce-payment.jar
+COPY ./internal/build/libs/*.jar myce-payment.jar
 
 ## 실행 포트
 EXPOSE 8023
