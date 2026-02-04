@@ -8,6 +8,7 @@ dependencies {
 
     //유레카
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
 
     //프로메테우스 메트릭스수집용
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
