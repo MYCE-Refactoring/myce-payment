@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${PAYMENT_DB_URL:jdbc:mysql://localhost:3306/myce_payment}
+    url: ${PAYMENT_DB_URL:jdbc:mysql://localhost:3307/myce_payment}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:password}
     driver-class-name: com.mysql.cj.jdbc.Driver
