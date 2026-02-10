@@ -42,6 +42,7 @@ eureka:
       defaultZone: ${EUREKA_URL}
   instance:
     prefer-ip-address: true
+    ip-address: ${PAYMENT_INTERNAL_URL}
 
 management:
   endpoints:
