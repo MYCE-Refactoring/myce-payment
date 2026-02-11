@@ -255,6 +255,7 @@ public class PaymentInternalServiceImpl implements PaymentInternalService {
     }
 
     private LocalDateTime toLocalDateTime(Long unixTimestamp) {
+        if (unixTimestamp == null || unixTimestamp <= 0) return null;
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(unixTimestamp), ZoneId.systemDefault());
     }
 

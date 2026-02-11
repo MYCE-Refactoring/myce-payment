@@ -102,7 +102,7 @@ public class PaymentMapper {
 
     // Unix 타임스탬프를 LocalDateTime으로 변환
     private LocalDateTime toLocalDateTime(Long unixTimestamp) {
-        if (unixTimestamp == null) return null;
+        if (unixTimestamp == null || unixTimestamp <= 0) return null;
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(unixTimestamp), ZoneId.systemDefault());
     }
 }
